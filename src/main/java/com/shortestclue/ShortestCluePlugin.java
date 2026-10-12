@@ -129,7 +129,9 @@ public class ShortestCluePlugin extends Plugin
 		// Port Sarim jail bucket (#11) redirect to Shantay Pass
 		Map.entry(new WorldPoint(3013, 3179, 0), new WorldPoint(3305, 3120, 0)),
 		// Daer Krand (DARN DRAKE), upstairs in the Sisterhood Sanctuary
-		Map.entry(new WorldPoint(3728, 3302, 0), new WorldPoint(3821, 9778, 2))
+		Map.entry(new WorldPoint(3728, 3302, 0), new WorldPoint(3821, 9778, 2)),
+		// Sir Vyvin (Surviving.), on the second floor of Falador castle
+		Map.entry(new WorldPoint(2983, 3338, 0), new WorldPoint(2983, 3338, 2))
 	);
 
 	private static final WorldPoint FALO_THE_BARD_LOCATION = new WorldPoint(2689, 3550, 0);
