@@ -11,6 +11,7 @@ import javax.inject.Inject;
 import net.runelite.api.Client;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.GameTick;
+import net.runelite.api.gameval.ItemID;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.EventBus;
@@ -86,6 +87,8 @@ public class ShortestCluePlugin extends Plugin
 	private DebugClueController debugController;
 
 	private Set<WorldPoint> currentDests;
+
+	private boolean currentRequiresSpade;
 
 	/**
 	 * Clue steps that are only reachable through the Wilderness, so their path is
@@ -218,8 +221,9 @@ public class ShortestCluePlugin extends Plugin
 			return;
 		}
 
-		if (!newDests.isEmpty() && !newDests.equals(this.currentDests)) {
-			pathTo(newDests);
+		boolean requiresSpade = clue.isRequiresSpade();
+		if (!newDests.isEmpty() && (!newDests.equals(this.currentDests) || requiresSpade != this.currentRequiresSpade)) {
+			pathTo(newDests, requiresSpade);
 		}
 
 		debug().updateFakeClueMapPoints(clue);
@@ -237,12 +241,23 @@ public class ShortestCluePlugin extends Plugin
 
 	public void pathTo(Set<WorldPoint> targets)
 	{
+		pathTo(targets, false);
+	}
+
+	/**
+	 * Paths to the closest of {@code targets}. When the step needs a spade, each target asks
+	 * Shortest Path for one: the path then goes through a bank first if the spade is only in the
+	 * bank, and says so when no spade was found.
+	 */
+	public void pathTo(Set<WorldPoint> targets, boolean requiresSpade)
+	{
 		if (client.getLocalPlayer() == null || targets == null || targets.isEmpty())
 		{
 			return;
 		}
 
 		this.currentDests = new HashSet<>(targets);
+		this.currentRequiresSpade = requiresSpade;
 
 		// Only the identified steps override avoidWilderness; every other path
 		// sends back the user's current setting so a prior override doesn't leak.
@@ -252,12 +267,26 @@ public class ShortestCluePlugin extends Plugin
 
 		Map<String, Object> data = new HashMap<>();
 		data.put("start", client.getLocalPlayer().getWorldLocation());
-		data.put("target", targets);
+		data.put("target", requiresSpade ? withSpade(targets) : targets);
 
 		Map<String, Object> configOverride = new HashMap<>();
 		configOverride.put("avoidWilderness", wildernessRequired ? Boolean.FALSE : avoidWilderness);
 		data.put("config", configOverride);
 		eventBus.post(new PluginMessage("shortestpath", "path", data));
+	}
+
+	/** Each target as a Shortest Path target map that needs a spade on arrival. */
+	private static Set<Object> withSpade(Set<WorldPoint> targets)
+	{
+		Set<Object> withRequirements = new HashSet<>();
+		for (WorldPoint target : targets)
+		{
+			Map<String, Object> targetMap = new HashMap<>();
+			targetMap.put("point", target);
+			targetMap.put("requirements", ItemID.SPADE);
+			withRequirements.add(targetMap);
+		}
+		return withRequirements;
 	}
 
 	private WorldPoint applyRemap(WorldPoint dest)
