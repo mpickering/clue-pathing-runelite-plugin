@@ -49,4 +49,15 @@ public interface ShortestClueConfig extends Config
 	{
 		return true;
 	}
+
+	@ConfigItem(
+		keyName = "requireSpade",
+		name = "Require spade on dig steps",
+		description = "Asks Shortest Path to route through a bank first when your spade is only in the bank. Turn off if you dig without a spade, e.g. with a pet that digs.",
+		position = 1
+	)
+	default boolean requireSpade()
+	{
+		return true;
+	}
 }

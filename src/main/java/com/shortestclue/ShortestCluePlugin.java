@@ -221,7 +221,7 @@ public class ShortestCluePlugin extends Plugin
 			return;
 		}
 
-		boolean requiresSpade = clue.isRequiresSpade();
+		boolean requiresSpade = config.requireSpade() && clue.isRequiresSpade();
 		if (!newDests.isEmpty() && (!newDests.equals(this.currentDests) || requiresSpade != this.currentRequiresSpade)) {
 			pathTo(newDests, requiresSpade);
 		}
